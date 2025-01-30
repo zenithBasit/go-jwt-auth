@@ -84,20 +84,21 @@ func Login(c *gin.Context) {
 	// Create jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"foo": "bar",
-		"nbf": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(os.Getenv("SECRET"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid email or password",
+			"error": "Failed to login",
 		})
 		return
 	}
 
 	// Send token
-	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
-	})
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
+	c.JSON(http.StatusOK, gin.H{})
 }
