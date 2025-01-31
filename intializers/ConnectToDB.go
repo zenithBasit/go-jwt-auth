@@ -1,6 +1,7 @@
 package intializers
 
 import (
+	"log"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -13,9 +14,12 @@ func ConnetToDB() {
 	var err error
 
 	dsn := os.Getenv("DB")
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if dsn == "" {
+		log.Fatal("Database URL not found in .env")
+	}
 
-	if err!=nil{
-		panic("Failed to connect to DB")
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to connect to DB: %v", err)
 	}
 }
